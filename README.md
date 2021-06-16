@@ -91,7 +91,7 @@ In what follows, the single modules will be described with a brief explanation o
 ### Dataset
 
 The module <i>py/utilities/dataset.py</i> contains the preprocessing algorithm adopted for the AMR-UTI dataset, 
-described in Section V-A of the paper.
+described in Section 5.1 of the paper.
 
 The AMR-UTI dataset has to be downloaded, and its main files ("<i>all_prescriptions.csv</i>", 
 "<i>all_uti_features.csv</i>", "<i>all_uti_resist_labels.csv</i>", "<i>data_dictionary.csv</i>") have to be 
@@ -126,7 +126,7 @@ to add to the input vector so that:
 where ![equation](https://latex.codecogs.com/svg.latex?%5Ctheta) is the hypothesis of the model with the trained
 parameters ![equation](https://latex.codecogs.com/svg.latex?%5Ctheta).
 
-The first step consists in computing the actual hypothesis of the network for the input sample 
+The first step consists in computing the actual hypothesis of the network for the input vector 
 ![equation](https://latex.codecogs.com/svg.latex?%5Chat%7By%7D), and verifying that it is coherent with the ground truth 
 label ![equation](https://latex.codecogs.com/svg.latex?y).
 
@@ -137,7 +137,7 @@ In particular, in order to demonstrate this point we trained a neural network wi
 and 2 neurons in the output layer.
 
 Following the preprocessing methodology that is further discussed in Section 5.1 of the paper, we selected a 
-subset of the adopted dataset choosing the 7 most meaningful features, of which 
+subset of the adopted dataset, choosing the 7 most meaningful features, of which 
 ![equation](https://latex.codecogs.com/svg.latex?x) represents a sample of the test set.
 
 We trained this two-layers neural network in 100 epochs with gradient descent and the following training 
@@ -180,15 +180,15 @@ The activation function of the second layer is the Softmax, which we perform in 
 described in the [Deep Learning book](https://www.deeplearningbook.org/).
 Let ![equation](https://latex.codecogs.com/svg.latex?%5Coverline%7Bz%7D%5E%7B%282%29%7D%20%3D%20z%5E%7B%282%29%7D%20-%20%5Cunderset%7Bi%7D%7Bmax%7D%5C%3B%20z%5E%7B%282%29%7D), 
 and let ![equation](https://latex.codecogs.com/svg.latex?j) represent the 
-![equation](https://latex.codecogs.com/svg.latex?j)-th  neuron in the layer, the activation layer performs the 
+![equation](https://latex.codecogs.com/svg.latex?j)-th neuron in the layer, the Softmax activation layer performs the 
 computation:
 
 ![Alt text](pics/11.svg?raw=true)
 
 and this concludes the forward pass of the network: ![equation](https://latex.codecogs.com/svg.latex?h_%5Ctheta%28x%29%20%3D%20%5Chat%7By%7D%20%3D%20%5B0.40%2C%200.60%5D).
 
-By considering the index of the maximum predicted probability as the predicted class, the input vector sampled is 
-classified as a sample belonging to the second class, which corresponds to the ground truth layer.
+By considering the index of the maximum predicted probability as the predicted class, the input vector is 
+classified as a sample belonging to the second class, which corresponds to the ground truth label.
 
 The objective of the adversary is to flip the predicted label for the input vector 
 ![equation](https://latex.codecogs.com/svg.latex?x). In other terms, he wants to find the perturbation 
