@@ -118,18 +118,19 @@ Let:
 
 be the input vector we want to perturb and its associated ground truth class label.
 
-The adversary aims at finding the perturbation <img src="https://latex.codecogs.com/svg.latex?\\delta"/> to add to the input vector so that:
+The adversary aims at finding the perturbation ![equation](https://latex.codecogs.com/svg.latex?%5Cdelta)
+to add to the input vector so that:
 
 ![Alt text](pics/3.svg?raw=true)
 
-where <img src="https://latex.codecogs.com/svg.latex?h_\\theta"/> is the hypothesis of the model with the trained
-parameters <img src="https://latex.codecogs.com/svg.latex?\\theta"/>.
+where ![equation](https://latex.codecogs.com/svg.latex?%5Ctheta) is the hypothesis of the model with the trained
+parameters ![equation](https://latex.codecogs.com/svg.latex?%5Ctheta).
 
 The first step consists in computing the actual hypothesis of the network for the input sample 
-<img src="https://latex.codecogs.com/svg.latex?\\hat{y}"/>, and verifying that it is coherent with the ground truth 
-label <img src="https://latex.codecogs.com/svg.latex?y"/>.
+![equation](https://latex.codecogs.com/svg.latex?%5Chat%7By%7D), and verifying that it is coherent with the ground truth 
+label ![equation](https://latex.codecogs.com/svg.latex?y).
 
-Let <img src="https://latex.codecogs.com/svg.latex?\\theta = \{W^{(1)}, W^{(2)}, b^{(1)}, b^{(2)}\}"/> be the parameters 
+Let ![equation](https://latex.codecogs.com/svg.latex?%5Ctheta%20%3D%20%5C%7BW%5E%7B%281%29%7D%2C%20W%5E%7B%282%29%7D%2C%20b%5E%7B%281%29%7D%2C%20b%5E%7B%282%29%7D%5C%7D) be the parameters 
 of the trained neural network we want to elude.
 
 In particular, in order to demonstrate this point we trained a neural network with 5 neurons on the first hidden layer 
@@ -137,17 +138,18 @@ and 2 neurons in the output layer.
 
 Following the preprocessing methodology that is further discussed in Section 5.1 of the paper, we selected a 
 subset of the adopted dataset choosing the 7 most meaningful features, of which 
-<img src="https://latex.codecogs.com/svg.latex?x"/> represents a sample of the test set.
+![equation](https://latex.codecogs.com/svg.latex?x) represents a sample of the test set.
 
 We trained this two-layers neural network in 100 epochs with gradient descent and the following training 
-hyperparameters: as learning rate <img src="https://latex.codecogs.com/svg.latex?\\alpha=0.01"/>; as weight decay 
-coefficient <img src="https://latex.codecogs.com/svg.latex?\\lambda=0.1"/>; as momentum coefficient 
-<img src="https://latex.codecogs.com/svg.latex?\\nu=0.6"/>; as loss function the cross entropy 
-<img src="https://latex.codecogs.com/svg.latex?L(\\theta, x, y) = - y \\odot log\\, \\hat{y}"/>, where 
-<img src="https://latex.codecogs.com/svg.latex?\\odot"/>
-is the element-wise multiplication between vectors, <img src="https://latex.codecogs.com/svg.latex?y"/> and 
-<img src="https://latex.codecogs.com/svg.latex?\\hat{y}"/> are the known and the predicted probability 
-for the input vector <img src="https://latex.codecogs.com/svg.latex?x"/>.
+hyperparameters: as learning rate ![equation](https://latex.codecogs.com/svg.latex?%5Calpha%3D0.01); as weight decay 
+coefficient ![equation](https://latex.codecogs.com/svg.latex?%5Clambda%3D0.1); as momentum coefficient 
+![equation](https://latex.codecogs.com/svg.latex?%5Cnu%3D0.6); as loss function the cross entropy 
+![equation](https://latex.codecogs.com/svg.latex?L%28%5Ctheta%2C%20x%2C%20y%29%20%3D%20-%20y%20%5Codot%20log%5C%2C%20%5Chat%7By%7D), 
+where 
+![equation](https://latex.codecogs.com/svg.latex?%5Codot) is the element-wise multiplication between vectors, 
+![equation](https://latex.codecogs.com/svg.latex?y) and 
+![equation](https://latex.codecogs.com/svg.latex?%5Chat%7By%7D) are the known and the predicted probability 
+for the input vector ![equation](https://latex.codecogs.com/svg.latex?x).
 
 The learned parameters of the neural network (approximated at the second decimal digit) are the following:
 
@@ -176,37 +178,37 @@ The linear computation of the second layer is:
 
 The activation function of the second layer is the Softmax, which we perform in the numerically stable variant
 described in the [Deep Learning book](https://www.deeplearningbook.org/).
-Let <img src="https://latex.codecogs.com/svg.latex?\\overline{z}^{(2)} = z^{(2)} - \\underset{i}{max}\\; z^{(2)}"/>, 
-and let <img src="https://latex.codecogs.com/svg.latex?j"/> represent the 
-<img src="https://latex.codecogs.com/svg.latex?j"/>-th  neuron in the layer, the activation layer performs the 
+Let ![equation](https://latex.codecogs.com/svg.latex?%5Coverline%7Bz%7D%5E%7B%282%29%7D%20%3D%20z%5E%7B%282%29%7D%20-%20%5Cunderset%7Bi%7D%7Bmax%7D%5C%3B%20z%5E%7B%282%29%7D), 
+and let ![equation](https://latex.codecogs.com/svg.latex?j) represent the 
+![equation](https://latex.codecogs.com/svg.latex?j)-th  neuron in the layer, the activation layer performs the 
 computation:
 
 ![Alt text](pics/11.svg?raw=true)
 
-and this concludes the forward pass of the network: 
-<img src="https://latex.codecogs.com/svg.latex?h_\\theta(x) = \\hat{y} = [0.40, 0.60]"/>.
+and this concludes the forward pass of the network: ![equation](https://latex.codecogs.com/svg.latex?h_%5Ctheta%28x%29%20%3D%20%5Chat%7By%7D%20%3D%20%5B0.40%2C%200.60%5D).
 
 By considering the index of the maximum predicted probability as the predicted class, the input vector sampled is 
 classified as a sample belonging to the second class, which corresponds to the ground truth layer.
 
 The objective of the adversary is to flip the predicted label for the input vector 
-<img src="https://latex.codecogs.com/svg.latex?x"/>. In other terms, he wants to find the perturbation 
-<img src="https://latex.codecogs.com/svg.latex?\\delta"/> such that 
-<img src="https://latex.codecogs.com/svg.latex?h_\\theta(x + \\delta) \\neq y"/>.
+![equation](https://latex.codecogs.com/svg.latex?x). In other terms, he wants to find the perturbation 
+![equation](https://latex.codecogs.com/svg.latex?%5Cdelta) such that 
+![equation](https://latex.codecogs.com/svg.latex?h_%5Ctheta%28x%20&plus;%20%5Cdelta%29%20%5Cneq%20y).
 
 First, the adversary puts in place a revised version of the well known 
 [Fast Gradient Sign Method](https://arxiv.org/pdf/1412.6572.pdf).
 
 The traditional approach aims at climbing up the gradient by adding the perturbation 
-<img src="https://latex.codecogs.com/svg.latex?\\xi = \\epsilon \\cdot sign(\\nabla_x L(\\theta, x, y))"/>, so that the 
-perturbation vector <img src="https://latex.codecogs.com/svg.latex?\\xi"/> is composed by values equal to 
-<img src="https://latex.codecogs.com/svg.latex?\\pm \\epsilon"/>.
+![equation](https://latex.codecogs.com/svg.latex?%5Cxi%20%3D%20%5Cepsilon%20%5Ccdot%20sign%28%5Cnabla_x%20L%28%5Ctheta%2C%20x%2C%20y%29%29), 
+so that the perturbation vector ![equation](https://latex.codecogs.com/svg.latex?%5Cxi) is composed by values equal to 
+![equation](https://latex.codecogs.com/svg.latex?%5Cpm%20%5Cepsilon).
 
 In this paper we decided to consider only the term:
 
 ![Alt text](pics/12.svg?raw=true)
 
-so that each single <img src="https://latex.codecogs.com/svg.latex?\\xi_i \\in \\mathbb{R}"/>. The reason lies in the 
+so that each single ![equation](https://latex.codecogs.com/svg.latex?%5Cxi_i%20%5Cin%20%5Cmathbb%7BR%7D). 
+The reason lies in the 
 need to select only a small subset of the input features to perturb. Opposed to the image processing domain, where each 
 pixel may be perturbed with a small step in its scale of representation, in different domains where the features may 
 assume a limited set of values (e.g., binary values), each single perturbation added to the input features has to be 
@@ -216,13 +218,14 @@ Let us now consider the computations performed by the adversary.
 In order to compute the gradient of the cost function w.r.t. the input vector, he needs to propagate the gradient back 
 starting from the output layer.
 
-The derivative of the cross-entropy loss function w.r.t. $z^{(2)}$, given that $\sigma^{(2)}$ is the Softmax activation 
+The derivative of the cross-entropy loss function w.r.t. ![equation](https://latex.codecogs.com/svg.latex?z%5E%7B%282%29%7D), 
+given that ![equation](https://latex.codecogs.com/svg.latex?%5Csigma%5E%7B%282%29%7D) is the Softmax activation 
 function, is [simply](https://www.deeplearningbook.org/):
 
 ![Alt text](pics/13.svg?raw=true)
 
 For the chain rule of calculus, and considering that the local gradient is 
-<img src="https://latex.codecogs.com/svg.latex?\\frac{\\partial z^{(2)}}{\\partial \\sigma^{(1)}} = W^{(2)}"/>:
+![equation](https://latex.codecogs.com/svg.latex?%5Cfrac%7B%5Cpartial%20z%5E%7B%282%29%7D%7D%7B%5Cpartial%20%5Csigma%5E%7B%281%29%7D%7D%20%3D%20W%5E%7B%282%29%7D):
 
 ![Alt text](pics/14.svg?raw=true)
 
@@ -235,7 +238,7 @@ applying the derivatives chain rule:
 ![Alt text](pics/16.svg?raw=true)
 
 The last step of backward propagation, considering that the local gradient is 
-<img src="https://latex.codecogs.com/svg.latex?\\frac{\\partial z^{(1)}}{\\partial x} = W^{(1)}"/>, 
+![equation](https://latex.codecogs.com/svg.latex?%5Cfrac%7B%5Cpartial%20z%5E%7B%281%29%7D%7D%7B%5Cpartial%20x%7D%20%3D%20W%5E%7B%281%29%7D), 
 implies the computation:
 
 ![Alt text](pics/17.svg?raw=true)
@@ -247,62 +250,58 @@ mock example has the value:
 
 ![Alt text](pics/18.svg?raw=true)
 
-so that the third feature <img src="https://latex.codecogs.com/svg.latex?x_3 \\in x"/> must remain fixed.
+so that the third feature ![equation](https://latex.codecogs.com/svg.latex?x_3%20%5Cin%20x) must remain fixed.
 
 The number of features the adversary may alter is supposed to be the minimum possible, i.e., 
-<img src="https://latex.codecogs.com/svg.latex?\\psi=1"/>.
+![equation](https://latex.codecogs.com/svg.latex?%5Cpsi%20%3D%201).
 
-A single input feature <img src="https://latex.codecogs.com/svg.latex?x_i"/> may be altered in two cases:
+A single input feature ![equation](https://latex.codecogs.com/svg.latex?x_i) may be altered in two cases:
 
-<ol>
-	<li>
-		<img src="https://latex.codecogs.com/svg.latex?x_i == 1"/> and the perturbation which results from ascending 
-		along the gradient of the loss function has negative sign, so that 
-		<img src="https://latex.codecogs.com/svg.latex?x_i"/> may be flipped by adding 
-		<img src="https://latex.codecogs.com/svg.latex?\\delta_i = -1"/>.
+1) ![equation](https://latex.codecogs.com/svg.latex?x_i%20%3D%3D%201) and the perturbation which results from 
+		ascending along the gradient of the loss function has negative sign, so that 
+		![equation](https://latex.codecogs.com/svg.latex?x_i) may be flipped by adding 
+		![equation](https://latex.codecogs.com/svg.latex?%5Cdelta_i%20%3D%20-1).
 		In other words, a feature value of 1 can be altered to 0 only if the sign of the gradient along that feature is 
 		negative;
-	</li>
-	<li>
-		<img src="https://latex.codecogs.com/svg.latex?x_i == 0"/> and the perturbation has positive sign instead, 
-		in order to flip <img src="https://latex.codecogs.com/svg.latex?x_i"/>, 
-		<img src="https://latex.codecogs.com/svg.latex?\\delta_i = +1"/> may be added.
-	</li>
-</ol>
+   
+2) ![equation](https://latex.codecogs.com/svg.latex?x_i%20%3D%3D%200) and the perturbation has positive sign instead, 
+		in order to flip ![equation](https://latex.codecogs.com/svg.latex?x_i), 
+		![equation](https://latex.codecogs.com/svg.latex?%5Cdelta_i%20%3D%20&plus;1) may be added.
+
 
 To achieve this aim, we first take the sign of the perturbation vector 
-<img src="https://latex.codecogs.com/svg.latex?\\xi"/>, which is then XORed with the input vector 
-<img src="https://latex.codecogs.com/svg.latex?x"/>.
+![equation](https://latex.codecogs.com/svg.latex?%5Cxi), which is then XORed with the input vector 
+![equation](https://latex.codecogs.com/svg.latex?x).
 
 The logic behind the XOR operation is that we want a function that is evaluated True only when the input feature is 1 
 and the perturbation has negative sign, and vice versa.
 The result of this operation is then processed with a bit-wise AND with the input 
-<img src="https://latex.codecogs.com/svg.latex?mask"/>, finally obtaining a binary 
+![equation](https://latex.codecogs.com/svg.latex?mask), finally obtaining a binary 
 vector which signals all those features which, if altered, make the neural network increase the error, 
 since their alteration is concordant with the direction of the gradient.
 
 ![Alt text](pics/19.svg?raw=true)
 
 Finally having the list of features he may alter to fool the neural network, the adversary chooses the 
-<img src="https://latex.codecogs.com/svg.latex?\\psi"/> 
+![equation](https://latex.codecogs.com/svg.latex?%5Cpsi) 
 features with maximum absolute value, in order to take the steepest step along the gradient.
 
-In the considered example, the adversary choose to alter <img src="https://latex.codecogs.com/svg.latex?x_5"/>, 
+In the considered example, the adversary choose to alter ![equation](https://latex.codecogs.com/svg.latex?x_5), 
 which is the feature with the highest magnitude of perturbation 
-(<img src="https://latex.codecogs.com/svg.latex?\\xi_5 = -0.57"/>) among the alterable features.
-Since <img src="https://latex.codecogs.com/svg.latex?x_5 = 1"/>, the perturbation consists in setting the bit to 0, 
+(![equation](https://latex.codecogs.com/svg.latex?%5Cxi_5%20%3D%20-0.57)) among the corruptible features.
+Since ![equation](https://latex.codecogs.com/svg.latex?x_5%20%3D%201), the perturbation consists in setting the bit to 0, 
 that is to say:
 
 ![Alt text](pics/20.svg?raw=true)
 
 Computing the hypothesis of the neural network on the corrupted sample 
-<img src="https://latex.codecogs.com/svg.latex?\\Tilde{x} = x + \\delta"/>, we obtain:
+![equation](https://latex.codecogs.com/svg.latex?%5CTilde%7Bx%7D%20%3D%20x%20&plus;%20%5Cdelta), we obtain:
 
 ![Alt text](pics/21.svg?raw=true)
 
 We have thus shown that, by changing a single feature in an input vector which the neural network classified as a sample 
 belonging to the second class with 60% confidence, the adversary succeeded in letting the neural network believe that 
-the new sample belongs to the first class, <img src="https://latex.codecogs.com/svg.latex?y_{target}"/>, with 72% 
+the new sample belongs to the first class, ![equation](https://latex.codecogs.com/svg.latex?y_%7Btarget%7D), with 72% 
 confidence.
 
 ### Experiments
