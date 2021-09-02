@@ -1,4 +1,4 @@
-# Adversarial Machine Learning in e-Health: a Fooled Smart Prescription Case Study
+Adversarial Machine Learning in e-Health:attacking a Smart Prescription system
 ==========================================================
 
 - [Setup](#Setup)
@@ -82,9 +82,6 @@ other utilities functions.
 
 The comments accompanying the code are written following the 
 [Google Python Style](https://google.github.io/styleguide/pyguide.html).
-
-In "docs/sphinx_docs/_build/latex/vasariproject-recommender.pdf" it can be found the documentation of the source code,
-generated with [Sphinx](https://www.sphinx-doc.org/en/master/).
 
 In what follows, the single modules will be described with a brief explanation of their intended use.
 

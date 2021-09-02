@@ -389,29 +389,33 @@ class NeuralNetwork:
         perturbed_sample = input_sample + perturbation
         return perturbed_sample
 
-    def bits2021_attack(self, test_X: np.ndarray, test_Y: np.ndarray,
-                        predicted_Y_probabilities: np.ndarray, epoch: int,
-                        values_of_psi: List[int]) -> List[np.ndarray]:
+    def aiXia2021_attack(self, test_X: np.ndarray, test_Y: np.ndarray,
+                         predicted_Y_probabilities: np.ndarray, epoch: int,
+                         values_of_psi: List[int]) -> Tuple[List[np.ndarray], np.ndarray, np.ndarray]:
         """
             The implementation of the attack algorithm proposed in Section IV of the paper.
             Args:
                 test_X: A ndarray containing the input samples in the test set. It has shape
-                    (n_samples_in_test_set, n_features).
+                (n_samples_in_test_set, n_features).
 
                 test_Y: A ndarray containing the labels associated with the samples in the test set. It has shape
-                    (n_samples_in_test_set, n_classes).
+                (n_samples_in_test_set, n_classes).
 
                 predicted_Y_probabilities: A ndarray containing the class probabilities predicted from the neural
-                    network. It has shape (n_samples_in_test_set, n_classes).
+                network. It has shape (n_samples_in_test_set, n_classes).
 
                 epoch: It is an integer which represents the current epoch of training.
 
                 values_of_psi: A list of integers which represent the amount of maximum features that the adversary
-                    can alter during the attack.
+                can alter during the attack.
 
             Returns:
                 results: A list of ndarrays containing the error% for the classes, for each single psi value.
-                    It has shape (values_of_psi, n_classes).
+                It has shape (values_of_psi, n_classes).
+
+                history_of_altered_features: A numpy array containing the history of altered features.
+
+                list_of_corrupted_X: A list of numpy arrays containing the altered input vectors for each value of psi.
         """
         predicted_Y = class_utils.from_probabilities_to_labels(predicted_Y_probabilities)
 
@@ -424,10 +428,12 @@ class NeuralNetwork:
         # First, we want to evaluate the attack only on those samples which are correctly classified
         correctly_classified_mask = (predicted_Y == test_Y)[:, 0]
         results = []
+        list_of_corrupted_X = []
         test_X = test_X[correctly_classified_mask]
         perturbations = perturbations[correctly_classified_mask]
         predicted_Y = predicted_Y[correctly_classified_mask]
-        for psi in values_of_psi:
+        history_of_altered_features = np.zeros((len(values_of_psi), len(perturbations), self.features_in_dataset))
+        for counter_psi, psi in enumerate(values_of_psi):
             psi_perturbations = np.copy(perturbations)
             perturbations_signs = np.sign(psi_perturbations)
             for i, single_perturbation in enumerate(psi_perturbations):
@@ -459,20 +465,23 @@ class NeuralNetwork:
                             psi_perturbations[i][index] = 1
                             counter += 1
                             modified_indices.append(index)
+                            history_of_altered_features[counter_psi][i][index] += 1
                         elif input_vector[index] == 1:
                             psi_perturbations[i][index] = -1
                             counter += 1
                             modified_indices.append(index)
+                            history_of_altered_features[counter_psi][i][index] += 1
                 not_modified_indices = [x for x in range(len(single_perturbation)) if x not in modified_indices]
                 psi_perturbations[i][not_modified_indices] = 0
             corrupted_X = test_X + psi_perturbations
+            list_of_corrupted_X.append(corrupted_X)
             corrupted_Y_probabilities = self.predict(corrupted_X)
             corrupted_Y = class_utils.from_probabilities_to_labels(corrupted_Y_probabilities)
             # We now want to count how many times the neural network was right, and with the corrupted samples is
             # induced into error instead.
-            result = self.evaluate_predictions(predicted_Y, corrupted_Y, n_epoch=epoch+1, attack=True, psi=psi)
+            result = self.evaluate_predictions(predicted_Y, corrupted_Y, n_epoch=epoch + 1, attack=True, psi=psi)
             results.append(result)
-        return results
+        return results, history_of_altered_features, list_of_corrupted_X
 
     def train(self, train_x: np.ndarray, train_y: np.ndarray,
               n_epochs: int, batch_size: int = -1,
@@ -604,7 +613,8 @@ class NeuralNetwork:
                 for i, label in enumerate(self.class_labels):
                     results['f-score ' + label] = fscore_values[i]
                 if attack:
-                    error_values = self.bits2021_attack(test_x, test_y, y_hat, epoch, values_of_psi=values_of_psi)
+                    error_values, _history_of_altered_features, _corrupted_X = \
+                        self.aiXia2021_attack(test_x, test_y, y_hat, epoch, values_of_psi=values_of_psi)
                     for psi_idx, psi in enumerate(values_of_psi):
                         psi_str = r'$\psi=$' + str(psi)
                         for i, label in enumerate(self.class_labels):
@@ -640,7 +650,7 @@ class NeuralNetwork:
 
                 loss_function: It is a string which represents the type of loss function to compute.
 
-                epsilon: It is a float which useful to avoid taking the logarithm of 0.
+                epsilon: It is a float useful to avoid taking the logarithm of 0.
 
                 attack: It is a boolean which indicates whether the calling function is the plain gradient descent
                     algorithm for training, or the adversarial attack algorithm. Indeed, in the second case, the

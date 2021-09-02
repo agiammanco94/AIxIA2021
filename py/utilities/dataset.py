@@ -592,6 +592,8 @@ class Amr_Uti_Dataset(Dataset):
                                     "demographics - age",
                                     "micro - prev resistance NIT "+str(day_granularity),
                                     "micro - prev resistance SXT "+str(day_granularity),
+                                    "medication 180 - nitrofurantoin",
+                                    "medication 180 - trimethoprim_sulfamethoxazole"
                                     ]
         self.perturbation_mask = np.ones(len(self.features_names))
         for feature in self.not_corruptible_features:

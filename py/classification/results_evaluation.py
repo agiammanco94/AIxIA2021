@@ -3,13 +3,17 @@
     This module provides the functions to evaluate the results of all the neural network runs with hyperparameters
     explored through random search.
 """
+from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
 
+import py.classification.neural_net as nn
+import py.utilities.dataset as dataset_utils
 import py.utilities.miscellaneous as misc_utils
+import py.classification.class_utils as class_utils
 
 
 def evaluate(top_n: int = 10) -> None:
@@ -227,5 +231,143 @@ def plot_selected_results_for_paper() -> None:
     plt.close()
 
 
+def plot_perturbations_evaluations(values_of_psi: List[int] = None) -> None:
+    """
+        This function plots histograms representing both the number of times that a given feature has been perturbed,
+        and the number of times that such perturbations brought to a successful elusion attack against the model.
+
+        Args:
+            values_of_psi: A list of integers which represent the amount of maximum features that the adversary
+                can alter during the attack.
+    """
+    if values_of_psi is None:
+        values_of_psi = [1, 2, 3, 4, 5]
+    prefix = misc_utils.get_relative_path()
+    selected_results_path = prefix + 'py/classification/selected_results/AMR-UTI'
+    run1_path = selected_results_path + '/29_features_considered/2_layers/145_2/500_epochs_306_batch_size/' \
+                                        '6.70e-04_1.71e-04_4.38e-01/'
+    run2_path = selected_results_path + '/42_features_considered/2_layers/177_2/500_epochs_350_batch_size/' \
+                                        '5.40e-04_1.36e-04_7.49e-03/'
+    run3_path = selected_results_path + '/59_features_considered/2_layers/215_2/500_epochs_601_batch_size/' \
+                                        '5.18e-04_3.25e-05_7.65e-01/'
+    runs = [run1_path, run2_path, run3_path]
+    list_of_df_perturbations = []
+    list_of_runs_errors = []
+    for i, run in enumerate(runs):
+
+        model_path = run + 'final_model.pkl'
+
+        network = nn.NeuralNetwork.load_parameters(model_path)
+
+        network.model_path = run
+        network.train_path = run
+
+        dataset = dataset_utils.Amr_Uti_Dataset(n_features=network.features_in_dataset)
+        network.perturbation_mask = dataset.perturbation_mask
+        y_hat = network.predict(dataset.test_X)
+
+        results, history_of_altered_features, corrupted_X = \
+            network.aiXia2021_attack(dataset.test_X, dataset.test_Y_one_hot, y_hat, 500, values_of_psi=values_of_psi)
+
+        predicted_classes_one_hot = class_utils.from_probabilities_to_labels(y_hat)
+
+        correctly_classified_mask = (dataset.test_Y_one_hot == predicted_classes_one_hot)[:, 0]
+
+        ground_truth = class_utils.one_hot(dataset.test_Y_one_hot[correctly_classified_mask], encode_decode=1)
+
+        features_names = dataset.features_names
+
+        run_results = []
+
+        for psi in values_of_psi:
+            corrupted_Y = network.predict(corrupted_X[psi-1])
+            corrupted_Y_one_hot = class_utils.from_probabilities_to_labels(corrupted_Y)
+            corrupted_Y_classes = class_utils.one_hot(corrupted_Y_one_hot, encode_decode=1)
+
+            for sample in range(len(ground_truth)):
+                ground = ground_truth[sample]
+                predicted = corrupted_Y_classes[sample]
+                success = 0
+                if ground != predicted:
+                    success = 1
+                perturbed_features = history_of_altered_features[psi-1][sample]
+                perturbed_features_indices = np.argwhere(perturbed_features == 1)
+                for index in perturbed_features_indices:
+                    results_for_sample = {'Ground': ground, 'Predicted': predicted,
+                                          'Feature Name': features_names[index[0]],
+                                          'psi': psi, 'Success': success}
+                    run_results.append(results_for_sample)
+
+        df_perturbations = pd.DataFrame(run_results)
+        list_of_df_perturbations.append(df_perturbations)
+        list_of_runs_errors.append(results)
+    merged_df_perturbations = pd.concat(list_of_df_perturbations)
+    all_perturbed_features_names = merged_df_perturbations['Feature Name'].unique()
+    final_dicts = []
+    for psi, group in merged_df_perturbations.groupby('psi'):
+        feature_name_series = group['Feature Name'].value_counts()
+        n_chosen = feature_name_series.sum()
+        success_series = group.groupby('Feature Name')['Success'].sum()
+        for feature in all_perturbed_features_names:
+            if feature not in feature_name_series.index:
+                feature_dict = {'Feature Name': feature, 'Chosen': 0,
+                                'Success': 0, 'psi': psi}
+            else:
+                chosen_count = feature_name_series.loc[feature]
+                success_count = success_series.loc[feature]
+                feature_dict = {'Feature Name': feature, 'Chosen': chosen_count/n_chosen,
+                                'Success': success_count/n_chosen,
+                                'psi': psi}
+            final_dicts.append(feature_dict)
+    final_df = pd.DataFrame(final_dicts)
+
+    success_heatmap = final_df.pivot(index='psi', columns='Feature Name', values='Success')
+
+    fig = plt.figure(figsize=(16, 16))
+    ax = fig.add_subplot(1, 1, 1)
+    p = sns.heatmap(success_heatmap, cmap="Blues", linewidth=0.3, linecolor='black', cbar_kws={'label': 'Success %',
+                                                                                               'shrink': .09},
+                    ax=ax, square=True)
+    cbar = ax.collections[0].colorbar
+    cbar.ax.tick_params(labelsize=12)
+    p.figure.axes[-1].yaxis.label.set_size(18)
+    _, ylabels = plt.yticks()
+    p.set_yticklabels(ylabels, size=16, rotation=45)
+    _, xlabels = plt.xticks()
+    p.set_xticklabels(range(len(xlabels)), size=16, rotation=45)
+    ax.set_xlabel('Features', fontsize=18)
+    psi_str = r'$\psi$'
+    ax.set_ylabel(psi_str, fontsize=18)
+    ax.tick_params(left=False, top=False, bottom=False)
+    fig.tight_layout()
+    plt.savefig(selected_results_path + '/success_results.pdf', bbox_inches='tight')
+    plt.close(fig)
+    plt.close()
+
+    count_heatmap = final_df.pivot(index='psi', columns='Feature Name', values='Chosen')
+
+    fig = plt.figure(figsize=(16, 16))
+    ax = fig.add_subplot(1, 1, 1)
+    p = sns.heatmap(count_heatmap, cmap="Blues", linewidth=0.3, linecolor='black', cbar_kws={'label': 'Chosen %',
+                                                                                               'shrink': .09},
+                    ax=ax, square=True)
+    cbar = ax.collections[0].colorbar
+    cbar.ax.tick_params(labelsize=16)
+    p.figure.axes[-1].yaxis.label.set_size(18)
+    _, ylabels = plt.yticks()
+    p.set_yticklabels(ylabels, size=16, rotation=45)
+    _, xlabels = plt.xticks()
+    p.set_xticklabels(['' for _ in range(len(xlabels))], size=16, rotation=45)
+    ax.set_xlabel('')
+    psi_str = r'$\psi$'
+    ax.set_ylabel(psi_str, fontsize=18)
+    ax.tick_params(left=False, top=False, bottom=False)
+    fig.tight_layout()
+    plt.savefig(selected_results_path + '/chosen_results.pdf', bbox_inches='tight')
+    plt.close(fig)
+    plt.close()
+
+
 if __name__ == '__main__':
-    plot_selected_results_for_paper()
+    #plot_selected_results_for_paper()
+    plot_perturbations_evaluations()
