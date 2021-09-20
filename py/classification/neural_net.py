@@ -143,10 +143,10 @@ class NeuralNetwork:
         n_neurons = ''
         for layer in self.layers:
             linear_layer, _activation_layer = layer
-            n_neurons = linear_layer.n_neurons
+            n_neurons_temp = linear_layer.n_neurons
             if len(n_neurons) > 0:
                 n_neurons += '\_'
-            n_neurons += str(n_neurons)
+            n_neurons += str(n_neurons_temp)
         return n_neurons
 
     def init_model_path(self) -> str:
